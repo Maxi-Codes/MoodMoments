@@ -10,9 +10,22 @@
 		2FD0781B2E0AF92B00C8ECAD /* MoodMoments.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MoodMoments.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		2FC129442E0B170100724770 /* Exceptions for "MoodMoments" folder in "MoodMoments" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 2FD0781A2E0AF92B00C8ECAD /* MoodMoments */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2FD0781D2E0AF92B00C8ECAD /* MoodMoments */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				2FC129442E0B170100724770 /* Exceptions for "MoodMoments" folder in "MoodMoments" target */,
+			);
 			path = MoodMoments;
 			sourceTree = "<group>";
 		};
@@ -256,6 +269,7 @@
 				DEVELOPMENT_TEAM = 5UK77V7X5Y;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MoodMoments/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -284,6 +298,8 @@
 				DEVELOPMENT_TEAM = 5UK77V7X5Y;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MoodMoments/Info.plist;
+				"INFOPLIST_FILE[sdk=*]" = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
