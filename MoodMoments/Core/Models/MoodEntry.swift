@@ -14,12 +14,14 @@ final class MoodEntry {
     var mood: Int          // 1–5
     var date: Date
     var audioFilePath: String?
+    var audioLenght: Int?
 
-    init(mood: Int, date: Date = .now, audioFilePath: String? = nil) {
+    init(mood: Int, date: Date = .now, audioFilePath: String? = nil, audioLenght: Int? = nil) {
         self.id = UUID()
         self.mood = mood
         self.date = date
         self.audioFilePath = audioFilePath
+        self.audioLenght = audioLenght
     }
 
     // MARK: – Convenience

@@ -1,7 +1,7 @@
 //  HomeViewModel.swift
 //  MoodMoments
 //
-//  Created by AI on 24.06.25.
+//  Created by Maximilian Dietrich on 24.06.25.
 //
 
 import Foundation
@@ -29,11 +29,11 @@ final class HomeViewModel: ObservableObject {
     // Audio
     private var audioRecorder: AVAudioRecorder?
 
-    func toggleRecording() {
-        isRecording ? stopRecording() : startRecording()
+    func toggleRecording(time: Int) {
+        isRecording ? stopRecording() : startRecording(time: time)
     }
 
-    private func startRecording() {
+    private func startRecording(time: Int) {
         let settings: [String: Any] = [AVFormatIDKey: kAudioFormatMPEG4AAC,
                                        AVSampleRateKey: 12000,
                                        AVNumberOfChannelsKey: 1,

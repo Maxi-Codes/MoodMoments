@@ -1,7 +1,7 @@
 //  HistoryViewModel.swift
 //  MoodMoments
 //
-//  Created by AI on 24.06.25.
+//  Created by Maximilian Dietrich on 24.06.25.
 //
 
 import Foundation
@@ -18,6 +18,9 @@ final class HistoryViewModel: ObservableObject {
 
     // MARK: – Dependencies
     @Environment(\.modelContext) private var context
+    
+    @Published var streak: Int = 0
+
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -42,5 +45,32 @@ final class HistoryViewModel: ObservableObject {
         } catch {
             print("History fetch error: \(error)")
         }
+    }
+    
+    public func formatDate(date: Date) -> String {
+        let customFormatter = DateFormatter()
+        customFormatter.dateFormat = "dd.MM.yyyy"
+        let customString = customFormatter.string(for: Date())
+        return customString!;
+    }
+    
+    func calculateStreak(from entries: [MoodEntry]) -> Int {
+        let calendar = Calendar.current
+        let sortedDates = Set(entries.map { calendar.startOfDay(for: $0.date) }) // Nur das Datum (ohne Uhrzeit)
+        
+        var streak = 0
+        var currentDate = calendar.startOfDay(for: Date()) // heute
+        
+        while sortedDates.contains(currentDate) {
+            streak += 1
+            guard let previousDay = calendar.date(byAdding: .day, value: -1, to: currentDate) else { break }
+            currentDate = previousDay
+        }
+        
+        return streak
+    }
+    
+    func updateStreak(with entries: [MoodEntry]) {
+        streak = calculateStreak(from: entries)
     }
 }

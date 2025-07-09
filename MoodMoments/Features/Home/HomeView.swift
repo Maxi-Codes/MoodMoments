@@ -1,10 +1,11 @@
 //  HomeView.swift
 //  MoodMoments
 //
-//  Created by AI on 24.06.25.
+//  Created by Maximilian Dietrich on 24.06.25.
 //
 
 import SwiftUI
+import SwiftData
 
 struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
@@ -12,11 +13,19 @@ struct HomeView: View {
     @State private var showMoodSheet = false
     @State private var selectedMood: Int? = nil
     @State private var selectedOption: String = "Wähle die Länge aus";
+    @State private var time: Int = 10
+    
+    @ObservedObject var viewModel: HomeViewModel
     
     let freeOption = "10 Sekunden"
     let premiumOptions = ["15 Sekunden", "20 Sekunden", "30 Sekunden", "60 Sekunden"]
-    
-    @ObservedObject var viewModel: HomeViewModel
+    let timeOptions: [String: Int] = [
+        "10 Sekunden": 10,
+        "15 Sekunden": 15,
+        "20 Sekunden": 20,
+        "30 Sekunden": 30,
+        "60 Sekunden": 60
+    ]
 
     init(viewModel: HomeViewModel) {
         self.viewModel = viewModel
@@ -37,7 +46,9 @@ struct HomeView: View {
                         .fill(Color("AccentColor").opacity(0.2))
                         .frame(width: 180, height: 180)
 
-                    Button(action: viewModel.toggleRecording) {
+                    Button(action: {
+                        viewModel.toggleRecording(time: time)
+                    }) {
                         Image(systemName: viewModel.isRecording ? "stop.circle.fill" : "mic.circle.fill")
                             .resizable()
                             .scaledToFit()
@@ -46,6 +57,7 @@ struct HomeView: View {
                             .shadow(radius: 8)
                     }
                     .accessibilityLabel(viewModel.isRecording ? "Aufnahme stoppen" : "Aufnahme starten")
+
                 }
 
                 if viewModel.isRecording {
@@ -56,29 +68,30 @@ struct HomeView: View {
                 }
 
                 Menu {
-                    Button(action: {
-                        selectedOption = freeOption
-                    }) {
-                        Label(freeOption, systemImage: selectedOption == freeOption ? "checkmark" : "")
-                    }
-
-                    Divider()
-
-                    ForEach(premiumOptions, id: \.self) { option in
-                        Label {
-                            HStack {
-                                Text(option)
-                                Spacer()
-                                Text("Mit Premium freischalten")
-                                    .font(.caption2)
-                                    .foregroundColor(.blue)
-                                    .italic()
+                    ForEach(timeOptions.sorted(by: { $0.value < $1.value }), id: \.key) { label, value in
+                        if label == freeOption {
+                            Button(action: {
+                                selectedOption = label
+                                time = value
+                            }) {
+                                Label(label, systemImage: selectedOption == label ? "checkmark" : "")
                             }
-                        } icon: {
-                            Image(systemName: "lock.fill")
-                                .foregroundColor(.gray)
+                        } else {
+                            Label {
+                                HStack {
+                                    Text(label)
+                                    Spacer()
+                                    Text("Mit Premium freischalten")
+                                        .font(.caption2)
+                                        .foregroundColor(.blue)
+                                        .italic()
+                                }
+                            } icon: {
+                                Image(systemName: "lock.fill")
+                                    .foregroundColor(.gray)
+                            }
+                            .disabled(true)
                         }
-                        .disabled(true)
                     }
                 } label: {
                     Label(selectedOption, systemImage: "chevron.down")
@@ -86,6 +99,7 @@ struct HomeView: View {
                         .background(Color.blue.opacity(0.2))
                         .cornerRadius(8)
                 }
+
             }
             .padding(.horizontal)
             .multilineTextAlignment(.center)

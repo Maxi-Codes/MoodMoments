@@ -1,10 +1,11 @@
 //  HistoryView.swift
 //  MoodMoments
 //
-//  Created by AI on 24.06.25.
+//  Created by Maximilian Dietrich on 24.06.25.
 //
 
 import SwiftUI
+import SwiftData
 
 struct IdentifiableDate: Identifiable {
     let id: Date
@@ -14,6 +15,10 @@ struct HistoryView: View {
     @StateObject private var viewModel = HistoryViewModel()
     @State private var selectedDay: IdentifiableDate? = nil
     
+    @StateObject private var audioManager = AudioPlayerManager()
+    
+    @Query var moods: [MoodEntry]
+    
     var body: some View {
         VStack() {
             HStack() {
@@ -21,7 +26,7 @@ struct HistoryView: View {
                 Image(systemName: "flame.fill")
                     .font(.title2)
                     .foregroundColor(Color.orange)
-                Text("2")
+                Text("\(viewModel.streak)")
             }
             .padding(.bottom)
             
@@ -42,49 +47,18 @@ struct HistoryView: View {
                 .padding(.bottom, 10)
 
             VStack(spacing: 16) {
-                HStack {
-                    Image(systemName: "calendar")
-                        .font(.title2)
-                        .foregroundColor(Color("AccentColor"))
-                    Text("25.06.2025 - Gut")
-                    Image(systemName: "face.smiling")
-                        .font(.title2)
-                        .foregroundColor(Color.orange)
-                    Spacer()
-                    Image(systemName: "play")
-                        .font(.title2)
-                        .foregroundColor(Color("AccentColor"))
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                HStack {
-                    Image(systemName: "calendar")
-                        .font(.title2)
-                        .foregroundColor(Color("AccentColor"))
-                    Text("24.06.2025 - Gut")
-                    Image(systemName: "face.smiling")
-                        .font(.title2)
-                        .foregroundColor(Color.orange)
-                    Spacer()
-                    Image(systemName: "play")
-                        .font(.title2)
-                        .foregroundColor(Color("AccentColor"))
-                }
-
-                HStack {
-                    Image(systemName: "calendar")
-                        .font(.title2)
-                        .foregroundColor(Color("AccentColor"))
-                    Text("23.06.2025 - Gut")
-                    Image(systemName: "face.smiling")
-                        .font(.title2)
-                        .foregroundColor(Color.orange)
-                    Spacer()
-                    Image(systemName: "play")
-                        .font(.title2)
-                        .foregroundColor(Color("AccentColor"))
+                ForEach(moods) { mood in
+                    let dateText = viewModel.formatDate(date: mood.date)
+                    MoodRow(
+                        mood: mood,
+                        dateText: dateText,
+                        onPlay: {
+                            audioManager.play(path: mood.audioFilePath ?? "")
+                        }
+                    )
                 }
             }
+
             Spacer()
         }
         .padding(.horizontal)
@@ -102,6 +76,33 @@ struct HistoryView: View {
         .padding(.horizontal)
     }
 }
+
+struct MoodRow: View {
+    let mood: MoodEntry
+    let dateText: String
+    let onPlay: () -> Void
+    
+    var body: some View {
+        HStack {
+            Image(systemName: mood.smiley)
+                .font(.title2)
+                .foregroundColor(.orange)
+
+            Text("\(dateText) - \(mood.moodLabel)")
+
+            Spacer()
+
+            Button(action: onPlay) {
+                Image(systemName: "play")
+                    .font(.title2)
+                    .foregroundColor(Color("AccentColor"))
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.bottom, 4)
+    }
+}
+
 
 // MARK: – Calendar Grid
 

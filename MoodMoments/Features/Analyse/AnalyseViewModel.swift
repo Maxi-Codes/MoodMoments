@@ -1,7 +1,7 @@
 //  AnalyseViewModel.swift
 //  MoodMoments
 //
-//  Created by AI on 24.06.25.
+//  Created by Maximilian Dietrich on 24.06.25.
 //
 
 import Foundation

@@ -1,7 +1,7 @@
 //  OnboardingView.swift
 //  MoodMoments
 //
-//  Created by AI on 24.06.25.
+//  Created by Maximilian Dietrich on 24.06.25.
 //
 
 import SwiftUI
@@ -17,8 +17,9 @@ struct OnboardingView: View {
                     .tag(0)
                 onboardPage(image: "mic.circle.fill", title: "Sprich deine Stimmung aus", subtitle: "Halte jeden Tag deine Gefühle fest – einfach per Mikrofon.")
                     .tag(1)
+                onboardPage(image: "rectangle.and.pencil.and.ellipsis", title: "Stimmung von Sprachform in Textform umwandeln", subtitle: "Lasse deine Stimmung per AI in Textform umwandeln").tag(2)
                 onboardPage(image: "calendar", title: "Behalte den Überblick", subtitle: "Sieh dir deinen Stimmungsverlauf und hilfreiche Analysen an.")
-                    .tag(2)
+                    .tag(3)
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
             .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
@@ -26,7 +27,7 @@ struct OnboardingView: View {
 
             Spacer()
             Button(action: next) {
-                Text(page < 2 ? "Weiter" : "Los geht's!")
+                Text(page < 3 ? "Weiter" : "Los geht's!")
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -59,7 +60,7 @@ struct OnboardingView: View {
     }
 
     private func next() {
-        if page < 2 {
+        if page < 3 {
             withAnimation { page += 1 }
         } else {
             hasSeenOnboarding = true
