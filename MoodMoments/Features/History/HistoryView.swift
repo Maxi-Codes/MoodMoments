@@ -1,3 +1,4 @@
+//
 //  HistoryView.swift
 //  MoodMoments
 //
@@ -13,98 +14,119 @@ struct IdentifiableDate: Identifiable {
 
 struct HistoryView: View {
     @StateObject private var viewModel = HistoryViewModel()
-    @State private var selectedDay: IdentifiableDate? = nil
-    
     @StateObject private var audioManager = AudioPlayerManager()
-    
-    @Query var moods: [MoodEntry]
-    
+
+    @State private var selectedDay: IdentifiableDate?
+    @Query private var moods: [MoodEntry]
+
     var body: some View {
-        VStack() {
-            HStack() {
-                Text("Deine Streak: ")
-                Image(systemName: "flame.fill")
-                    .font(.title2)
-                    .foregroundColor(Color.orange)
-                Text("\(viewModel.streak)")
-            }
-            .padding(.bottom)
-            
-            VStack(alignment: .center, spacing: 16) {
-                header
-                CalendarGrid(currentMonth: viewModel.currentMonth, entries: viewModel.groupedEntries) { date in
-                    selectedDay = IdentifiableDate(id: date)            }
-                
-            }
-            .sheet(item: $selectedDay) { wrapper in
-                let date = wrapper.id
-                HistoryDetailView(date: date, entry: viewModel.groupedEntries[date])
-            }
-            Spacer()
-            Text("Das war die Stimmung der letzten 3 Tage:")
-                .font(.title2)
-                .fontWeight(.bold)
-                .padding(.bottom, 10)
+        ScrollView {
+            VStack(spacing: 24) {
 
-            VStack(spacing: 16) {
-                ForEach(moods) { mood in
-                    let dateText = viewModel.formatDate(date: mood.date)
-                    MoodRow(
-                        mood: mood,
-                        dateText: dateText,
-                        onPlay: {
-                            audioManager.play(path: mood.audioFilePath ?? "")
-                        }
-                    )
+                // MARK: - Streak Header
+                HStack(spacing: 8) {
+                    Text("Deine Streak:")
+                    Image(systemName: "flame.fill")
+                        .foregroundColor(.orange)
+                    Text("\(viewModel.streak)")
                 }
-            }
+                .font(.title3)
+                .padding(.top)
 
-            Spacer()
+                // MARK: - Calendar Box
+                VStack(spacing: 16) {
+                    calendarHeader
+                    CalendarGrid(
+                        currentMonth: viewModel.currentMonth,
+                        entries: viewModel.groupedEntries
+                    ) { date in
+                        selectedDay = IdentifiableDate(id: date)
+                    }
+                }
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color(.systemBackground))
+                .cornerRadius(20)
+                .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 5)
+                .padding(.horizontal)
+                .sheet(item: $selectedDay) { wrapper in
+                    HistoryDetailView(date: wrapper.id, entry: viewModel.groupedEntries[wrapper.id])
+                }
+
+                // MARK: - Last 3 Days Box
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Das war die Stimmung der letzten 3 Tage:")
+                        .font(.title2)
+                        .fontWeight(.bold)
+
+                    VStack(spacing: 12) {
+                        ForEach(moods.prefix(3).reversed()) { mood in
+                            MoodRow(
+                                mood: mood,
+                                dateText: viewModel.formatDate(date: mood.date),
+                                onPlay: {
+                                    audioManager.play(path: mood.audioFilePath ?? "")
+                                }
+                            )
+                        }
+                    }
+                }
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color(.systemBackground))
+                .cornerRadius(20)
+                .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 5)
+                .padding(.horizontal)
+
+                Spacer(minLength: 40)
+            }
         }
-        .padding(.horizontal)
     }
 
-    private var header: some View {
+    // MARK: - Calendar Header
+    private var calendarHeader: some View {
         HStack {
-            Button(action: { viewModel.changeMonth(by: -1) }) { Image(systemName: "chevron.left") }
+            Button(action: { viewModel.changeMonth(by: -1) }) {
+                Image(systemName: "chevron.left")
+            }
             Spacer()
             Text(viewModel.currentMonth, formatter: DateFormatter.monthAndYear)
                 .font(.headline)
             Spacer()
-            Button(action: { viewModel.changeMonth(by: 1) }) { Image(systemName: "chevron.right") }
+            Button(action: { viewModel.changeMonth(by: 1) }) {
+                Image(systemName: "chevron.right")
+            }
         }
-        .padding(.horizontal)
     }
 }
+
+// MARK: - Mood Row
 
 struct MoodRow: View {
     let mood: MoodEntry
     let dateText: String
     let onPlay: () -> Void
-    
+
     var body: some View {
         HStack {
             Image(systemName: mood.smiley)
-                .font(.title2)
                 .foregroundColor(.orange)
 
             Text("\(dateText) - \(mood.moodLabel)")
+                .font(.subheadline)
 
             Spacer()
 
             Button(action: onPlay) {
-                Image(systemName: "play")
-                    .font(.title2)
+                Image(systemName: "play.fill")
                     .foregroundColor(Color("AccentColor"))
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.bottom, 4)
+        .padding(.vertical, 4)
     }
 }
 
-
-// MARK: – Calendar Grid
+// MARK: - Calendar Grid
 
 private struct CalendarGrid: View {
     let currentMonth: Date
@@ -124,7 +146,7 @@ private struct CalendarGrid: View {
                 ForEach(days, id: \.self) { date in
                     let entry = entries[date]
                     Button(action: { onSelect(date) }) {
-                        VStack {
+                        VStack(spacing: 4) {
                             if let entry {
                                 Image(systemName: entry.smiley)
                                     .foregroundColor(.yellow)
@@ -134,13 +156,14 @@ private struct CalendarGrid: View {
                                     .fill(Color.gray.opacity(0.1))
                                     .frame(width: 24, height: 24)
                             }
+
                             Text("\(Calendar.current.component(.day, from: date))")
                                 .font(.caption2)
                                 .foregroundColor(.primary)
                         }
                         .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(PlainButtonStyle())
+                    .buttonStyle(.plain)
                 }
             }
         }
@@ -150,17 +173,20 @@ private struct CalendarGrid: View {
         let symbols = Calendar.current.shortWeekdaySymbols
         return HStack {
             ForEach(symbols, id: \.self) { day in
-                Text(day).font(.caption).frame(maxWidth: .infinity)
+                Text(day)
+                    .font(.caption)
+                    .frame(maxWidth: .infinity)
             }
         }
     }
 }
 
-// MARK: – Detail Sheet
+// MARK: - Detail Sheet View
 
 private struct HistoryDetailView: View {
     let date: Date
     let entry: MoodEntry?
+
     @State private var isPlaying = false
 
     var body: some View {
@@ -168,13 +194,16 @@ private struct HistoryDetailView: View {
             Text(date, formatter: DateFormatter.longDate)
                 .font(.title2)
                 .fontWeight(.semibold)
+
             if let entry {
                 Image(systemName: entry.smiley)
                     .resizable()
                     .frame(width: 60, height: 60)
                     .foregroundColor(.yellow)
+
                 Text("Stimmung: \(entry.moodLabel)")
                     .font(.headline)
+
                 Button(action: { playAudio(path: entry.audioFilePath) }) {
                     HStack {
                         Image(systemName: isPlaying ? "stop.circle.fill" : "play.circle.fill")
@@ -190,6 +219,7 @@ private struct HistoryDetailView: View {
                 Text("Keine Einträge für diesen Tag.")
                     .foregroundColor(.secondary)
             }
+
             Spacer()
         }
         .padding()
@@ -197,8 +227,9 @@ private struct HistoryDetailView: View {
 
     private func playAudio(path: String?) {
         guard let path else { return }
+
         if isPlaying {
-            AudioPlayerManager.shared.play(path: "") // stop by playing empty
+            AudioPlayerManager.shared.play(path: "")
             isPlaying = false
         } else {
             AudioPlayerManager.shared.play(path: path)
@@ -206,6 +237,8 @@ private struct HistoryDetailView: View {
         }
     }
 }
+
+// MARK: - Preview
 
 #Preview {
     HistoryView()

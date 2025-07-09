@@ -17,15 +17,25 @@ final class AnalyseViewModel: ObservableObject {
         let averageMood: Double
     }
 
+    private var context: ModelContext?
+
     @Published private(set) var last7Days: [DayStat] = []
 
-    @Environment(\.modelContext) private var context
+    // Neue Funktion um context zu setzen
+    func setContext(_ context: ModelContext) {
+        self.context = context
+    }
 
     func fetch() {
+        guard let context = context else {
+            print("ModelContext noch nicht gesetzt")
+            return
+        }
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         let start = calendar.date(byAdding: .day, value: -6, to: today)!
         let request = FetchDescriptor<MoodEntry>(predicate: #Predicate { $0.date >= start && $0.date <= today })
+
         do {
             let entries = try context.fetch(request)
             var grouped: [Date: [MoodEntry]] = [:]
@@ -33,6 +43,7 @@ final class AnalyseViewModel: ObservableObject {
                 let day = calendar.startOfDay(for: e.date)
                 grouped[day, default: []].append(e)
             }
+
             last7Days = (0...6).map { offset in
                 let day = calendar.date(byAdding: .day, value: -offset, to: today)!
                 let list = grouped[day] ?? []

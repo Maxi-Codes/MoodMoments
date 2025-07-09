@@ -22,10 +22,7 @@ final class HomeViewModel: ObservableObject {
     @Published var didFinishRecording = false
 
     private var timer: Timer?
-    private let maxSeconds = 10
-
     
-
     // Audio
     private var audioRecorder: AVAudioRecorder?
 
@@ -34,6 +31,7 @@ final class HomeViewModel: ObservableObject {
     }
 
     private func startRecording(time: Int) {
+        var maxSeconds: Int = time;
         let settings: [String: Any] = [AVFormatIDKey: kAudioFormatMPEG4AAC,
                                        AVSampleRateKey: 12000,
                                        AVNumberOfChannelsKey: 1,
@@ -48,7 +46,7 @@ final class HomeViewModel: ObservableObject {
             timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
                 guard let self else { return }
                 self.secondsElapsed += 1
-                if self.secondsElapsed >= self.maxSeconds {
+                if self.secondsElapsed >= maxSeconds {
                     self.stopRecording()
                 }
             }
@@ -65,9 +63,9 @@ final class HomeViewModel: ObservableObject {
         didFinishRecording = true
     }
 
-    func saveMood(mood: Int) {
+    func saveMood(mood: Int, audioLenght: Int) {
         guard let url = audioRecorder?.url else { return }
-        let entry = MoodEntry(mood: mood, audioFilePath: url.path)
+        let entry = MoodEntry(mood: mood, audioFilePath: url.path, audioLenght: audioLenght)
         context.insert(entry)
         try? context.save()
     }
