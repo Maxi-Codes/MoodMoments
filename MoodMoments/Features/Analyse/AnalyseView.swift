@@ -35,7 +35,7 @@ struct AnalyseView: View {
                     .frame(height: 220)
                 }
                 .padding()
-                .background(Color(.systemBackground))
+                .background(Color(.secondarySystemBackground))
                 .cornerRadius(16)
                 .shadow(radius: 4)
                 .padding(.horizontal)
@@ -58,7 +58,7 @@ struct AnalyseView: View {
                         .frame(height: 220)
                     }
                     .padding()
-                    .background(Color(.systemBackground))
+                    .background(Color(.secondarySystemBackground))
                     .cornerRadius(16)
                     .shadow(radius: 4)
                     .blur(radius: 3)
@@ -95,7 +95,7 @@ struct AnalyseView: View {
                         .frame(height: 220)
                     }
                     .padding()
-                    .background(Color(.systemBackground))
+                    .background(Color(.secondarySystemBackground))
                     .cornerRadius(16)
                     .shadow(radius: 4)
                     .blur(radius: 3)

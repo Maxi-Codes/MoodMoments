@@ -11,6 +11,8 @@ struct RootContentView: View {
     @State private var selectedTab = 0
     @State private var showProSheet = false
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+    @AppStorage("isDarkMode") private var isDarkMode = false
+
 
     var body: some View {
         ZStack {
@@ -20,6 +22,7 @@ struct RootContentView: View {
                 OnboardingView(hasSeenOnboarding: $hasSeenOnboarding)
             }
         }
+        .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 
     private var mainTabView: some View {

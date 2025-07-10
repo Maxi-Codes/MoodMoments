@@ -73,4 +73,6 @@ final class HistoryViewModel: ObservableObject {
     func updateStreak(with entries: [MoodEntry]) {
         streak = calculateStreak(from: entries)
     }
+    
+    func smileyColor(for mood: Int) -> Color { MoodEntry(mood: mood).smileyColor }
 }

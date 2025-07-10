@@ -12,13 +12,13 @@ struct HomeView: View {
     @ObservedObject var viewModel: HomeViewModel
 
     let freeOption = "10 Sekunden"
-    let premiumOptions = ["15 Sekunden", "20 Sekunden", "30 Sekunden", "60 Sekunden"]
+    let premiumOptions = ["15 Sekunden", "20 Sekunden", "30 Sekunden", "60 Sekunden", "Unlimitiert"]
     let timeOptions: [String: Int] = [
         "10 Sekunden": 10,
         "15 Sekunden": 15,
         "20 Sekunden": 20,
         "30 Sekunden": 30,
-        "60 Sekunden": 60
+        "60 Sekunden": 60,
     ]
 
     init(viewModel: HomeViewModel) {
@@ -104,7 +104,7 @@ struct HomeView: View {
                 }
                 .padding()
                 .frame(maxWidth: .infinity)
-                .background(Color(.systemBackground))
+                .background(Color(.secondarySystemBackground))
                 .cornerRadius(20)
                 .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 5)
                 .padding(.horizontal)
@@ -113,16 +113,18 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Tagesimpulse")
                         .font(.headline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
                     VStack(alignment: .leading, spacing: 12) {
                         impulseView(text: "„Jeder Tag ist eine neue Chance.“", icon: "sunrise.fill")
                         impulseView(text: "„Es ist okay, nicht okay zu sein.“", icon: "cloud.drizzle.fill")
                         impulseView(text: "„Du bist weiter als du denkst.“", icon: "figure.walk.circle.fill")
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .padding()
                 .frame(maxWidth: .infinity)
-                .background(Color(.systemBackground))
+                .background(Color(.secondarySystemBackground))
                 .cornerRadius(20)
                 .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 5)
                 .padding(.horizontal)
@@ -132,7 +134,16 @@ struct HomeView: View {
             .padding(.top)
             .padding(.bottom, 40)
         }
-
+        .sheet(isPresented: $showMoodSheet, onDismiss: {
+            viewModel.didFinishRecording = false // reset
+        }) {
+            moodSheet
+        }
+        .onChange(of: viewModel.didFinishRecording) { newValue in
+            if newValue {
+                showMoodSheet = true
+            }
+        }
     }
 
     private var moodSheet: some View {
@@ -151,20 +162,23 @@ struct HomeView: View {
                         Image(systemName: viewModel.smiley(for: mood))
                             .resizable()
                             .frame(width: 40, height: 40)
-                            .foregroundColor(Color("AccentColor"))
-                            .opacity(selectedMood == mood ? 1.0 : 0.7)
+                            .foregroundColor(viewModel.smileyColor(for: mood))
+                            .opacity(selectedMood == mood ? 1.0 : 0.6)
+                            .scaleEffect(selectedMood == mood ? 1.2 : 1.0)
+                            .animation(.easeInOut(duration: 0.2), value: selectedMood)
                     }
                     .accessibilityLabel(viewModel.smileyLabel(for: mood))
                 }
             }
 
-            Text("1 = sehr schlecht, 5 = sehr gut")
+            Text("1 = traurig, 5 = fröhlich")
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
         .padding()
     }
-    
+
+
     private func impulseView(text: String, icon: String) -> some View {
         HStack(alignment: .top, spacing: 8) {
             Image(systemName: icon)
@@ -177,5 +191,4 @@ struct HomeView: View {
         .background(Color.gray.opacity(0.1))
         .cornerRadius(12)
     }
-
 }

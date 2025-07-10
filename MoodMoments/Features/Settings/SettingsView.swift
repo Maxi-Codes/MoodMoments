@@ -18,12 +18,6 @@ struct SettingsView: View {
                     Toggle("Dark Mode", isOn: $isDarkMode)
                 }
 
-                Section("Onboarding") {
-                    Button("Onboarding erneut anzeigen") {
-                        hasSeenOnboarding = false
-                    }
-                }
-
                 Section("App") {
                     Button("App bewerten") { rateApp() }
                     Button("Support kontaktieren") { contactSupport() }
@@ -38,14 +32,15 @@ struct SettingsView: View {
         if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
             #if canImport(StoreKit)
             if #available(iOS 14.0, *) {
-                SKStoreReviewController.requestReview(in: scene)
+                //SKStoreReviewController.requestReview(in: scene)
+                AppStore.requestReview(in: scene)
             }
             #endif
         }
     }
 
     private func contactSupport() {
-        let email = "support@moodmoments.app"
+        let email = "ghostmaxi296@gmail.com"
         if let url = URL(string: "mailto:\(email)?subject=Support%20Anfrage") {
             UIApplication.shared.open(url)
         }

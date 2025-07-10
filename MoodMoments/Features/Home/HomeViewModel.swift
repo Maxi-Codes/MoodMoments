@@ -65,6 +65,9 @@ final class HomeViewModel: ObservableObject {
 
     func saveMood(mood: Int, audioLenght: Int) {
         guard let url = audioRecorder?.url else { return }
+        print(url)
+        print(mood)
+        print(audioLenght)
         let entry = MoodEntry(mood: mood, audioFilePath: url.path, audioLenght: audioLenght)
         context.insert(entry)
         try? context.save()
@@ -72,6 +75,8 @@ final class HomeViewModel: ObservableObject {
 
     // MARK: – Helpers
     func smiley(for mood: Int) -> String { MoodEntry(mood: mood).smiley }
+    
+    func smileyColor(for mood: Int) -> Color { MoodEntry(mood: mood).smileyColor }
 
     func smileyLabel(for mood: Int) -> String { MoodEntry(mood: mood).moodLabel }
 }

@@ -45,7 +45,7 @@ struct HistoryView: View {
                 }
                 .padding()
                 .frame(maxWidth: .infinity)
-                .background(Color(.systemBackground))
+                .background(Color(.secondarySystemBackground))
                 .cornerRadius(20)
                 .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 5)
                 .padding(.horizontal)
@@ -54,26 +54,28 @@ struct HistoryView: View {
                 }
 
                 // MARK: - Last 3 Days Box
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(spacing: 16) {
                     Text("Das war die Stimmung der letzten 3 Tage:")
                         .font(.title2)
                         .fontWeight(.bold)
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
                     VStack(spacing: 12) {
-                        ForEach(moods.prefix(3).reversed()) { mood in
+                        ForEach(moods.reversed().prefix(3)) { mood in
                             MoodRow(
                                 mood: mood,
                                 dateText: viewModel.formatDate(date: mood.date),
                                 onPlay: {
                                     audioManager.play(path: mood.audioFilePath ?? "")
-                                }
+                                },
+                                viewModel: viewModel,
                             )
                         }
                     }
                 }
                 .padding()
                 .frame(maxWidth: .infinity)
-                .background(Color(.systemBackground))
+                .background(Color(.secondarySystemBackground))
                 .cornerRadius(20)
                 .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 5)
                 .padding(.horizontal)
@@ -106,23 +108,35 @@ struct MoodRow: View {
     let mood: MoodEntry
     let dateText: String
     let onPlay: () -> Void
+    let viewModel: HistoryViewModel
 
     var body: some View {
-        HStack {
-            Image(systemName: mood.smiley)
-                .foregroundColor(.orange)
-
-            Text("\(dateText) - \(mood.moodLabel)")
-                .font(.subheadline)
-
-            Spacer()
-
-            Button(action: onPlay) {
-                Image(systemName: "play.fill")
-                    .foregroundColor(Color("AccentColor"))
+        DisclosureGroup {
+            VStack {
+                HStack(alignment: .center) {
+                    Text("Audio: \(mood.audioLenght)")
+                    Spacer()
+                    Button(action: onPlay) {
+                        Image(systemName: "play.fill")
+                            .foregroundColor(Color("AccentColor"))
+                    }
+                }
+                .padding(.bottom, 2)
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Transkripiert:")
+                    Text("test")
+                    Spacer()
+                }
+            }
+            .padding(.vertical)
+        } label: {
+            HStack(alignment: .center, spacing: 8) {
+                Text("\(dateText) - \(mood.moodLabel)")
+                    .font(.subheadline)
+                Image(systemName: mood.smiley)
+                    .foregroundColor(viewModel.smileyColor(for: mood.mood))
             }
         }
-        .padding(.vertical, 4)
     }
 }
 

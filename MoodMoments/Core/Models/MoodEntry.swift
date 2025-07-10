@@ -6,6 +6,7 @@
 
 import Foundation
 import SwiftData
+import SwiftUICore
 
 /// Persistentes Datenmodell für einen Stimmungseintrag
 @Model
@@ -27,12 +28,23 @@ final class MoodEntry {
     // MARK: – Convenience
     var smiley: String {
         switch mood {
-        case 1: return "face.dashed"             // sehr schlecht
-        case 2: return "face.smiling.inverse"    // schlecht
-        case 3: return "face.smiling"            // neutral
-        case 4: return "face.smiling.fill"       // gut
-        case 5: return "face.smiling"            // sehr gut (Symbol doppelt, aber andere Farbe möglich)
-        default: return "questionmark"
+        case 1: return "face.smiling.inverse"                    // traurig
+            case 2: return "face.smiling.inverse"           // bisschen traurig
+            case 3: return "face.smiling.inverse"       // neutral
+            case 4: return "face.smiling.inverse"                   // bisschen fröhlich
+            case 5: return "face.smiling.inverse"              // fröhlich
+            default: return "questionmark"
+        }
+    }
+    
+    var smileyColor: Color {
+        switch mood {
+        case 1: return .red
+        case 2: return .orange
+        case 3: return .yellow
+        case 4: return .green.opacity(0.7)
+        case 5: return .green
+        default: return .gray
         }
     }
 
