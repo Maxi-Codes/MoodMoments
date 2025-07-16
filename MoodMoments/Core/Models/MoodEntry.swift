@@ -1,7 +1,7 @@
 //  MoodEntry.swift
 //  MoodMoments
 //
-//  Created by AI on 24.06.25.
+//  Created by Maximilian Dietrich on 24.06.25.
 //
 
 import Foundation
@@ -12,27 +12,29 @@ import SwiftUICore
 @Model
 final class MoodEntry {
     var id: UUID
-    var mood: Int          // 1–5
+    var mood: Int
     var date: Date
     var audioFilePath: String?
     var audioLenght: Int?
+    var transcript: String?
 
-    init(mood: Int, date: Date = .now, audioFilePath: String? = nil, audioLenght: Int? = nil) {
+    init(mood: Int, date: Date = .now, audioFilePath: String? = nil, audioLenght: Int? = nil, transcript: String? = nil) {
         self.id = UUID()
         self.mood = mood
         self.date = date
         self.audioFilePath = audioFilePath
         self.audioLenght = audioLenght
+        self.transcript = transcript
     }
 
     // MARK: – Convenience
     var smiley: String {
         switch mood {
-        case 1: return "face.smiling.inverse"                    // traurig
-            case 2: return "face.smiling.inverse"           // bisschen traurig
-            case 3: return "face.smiling.inverse"       // neutral
-            case 4: return "face.smiling.inverse"                   // bisschen fröhlich
-            case 5: return "face.smiling.inverse"              // fröhlich
+        case 1: return "circle.fill"
+            case 2: return "circle.fill"
+            case 3: return "circle.fill"
+            case 4: return "circle.fill"
+            case 5: return "circle.fill"
             default: return "questionmark"
         }
     }

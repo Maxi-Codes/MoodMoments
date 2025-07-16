@@ -9,12 +9,17 @@ import Combine
 import AVFoundation
 import SwiftData
 import SwiftUICore
+import CoreAudio
+import Speech
 
 @MainActor
 final class HomeViewModel: ObservableObject {
     private let context: ModelContext
+    @Published var transcript: String = ""
+    private var speechRecognizer: SpeechRecognizer? = nil
     init(context: ModelContext) {
         self.context = context
+        self.speechRecognizer = SpeechRecognizer()
     }
     // Recording
     @Published var isRecording = false
@@ -26,18 +31,41 @@ final class HomeViewModel: ObservableObject {
     // Audio
     private var audioRecorder: AVAudioRecorder?
 
+    private var transcriptUpdateTask: Task<Void, Never>? = nil
+
     func toggleRecording(time: Int) {
-        isRecording ? stopRecording() : startRecording(time: time)
+        if isRecording {
+            stopRecording()
+            speechRecognizer?.stopTranscribing()
+            transcriptUpdateTask?.cancel()
+            transcriptUpdateTask = nil
+        } else {
+            startRecording(time: time)
+            transcript = ""
+            speechRecognizer?.resetTranscript()
+            speechRecognizer?.startTranscribing()
+            transcriptUpdateTask = Task { [weak self] in
+                while let self, self.isRecording {
+                    if let latest = await self.speechRecognizer?.transcript {
+                        await MainActor.run { self.transcript = latest }
+                    }
+                    try? await Task.sleep(nanoseconds: 300_000_000) // 0.3s
+                }
+            }
+        }
     }
 
     private func startRecording(time: Int) {
-        var maxSeconds: Int = time;
+        let maxSeconds: Int = time;
         let settings: [String: Any] = [AVFormatIDKey: kAudioFormatMPEG4AAC,
                                        AVSampleRateKey: 12000,
                                        AVNumberOfChannelsKey: 1,
                                        AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue]
-        let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".m4a")
+        let fileURL = Self.audioFileURL()
         do {
+            let audioSession = AVAudioSession.sharedInstance()
+            try audioSession.setCategory(.playAndRecord, mode: .default)
+            try audioSession.setActive(true)
             audioRecorder = try AVAudioRecorder(url: fileURL, settings: settings)
             audioRecorder?.record()
             isRecording = true
@@ -48,6 +76,8 @@ final class HomeViewModel: ObservableObject {
                 self.secondsElapsed += 1
                 if self.secondsElapsed >= maxSeconds {
                     self.stopRecording()
+                    let size = try? FileManager.default.attributesOfItem(atPath: fileURL.path)[.size] as? Int
+                    print("File size after recording: \(size ?? -1)")
                 }
             }
         } catch {
@@ -61,16 +91,25 @@ final class HomeViewModel: ObservableObject {
         timer?.invalidate()
         timer = nil
         didFinishRecording = true
+        do {
+            try AVAudioSession.sharedInstance().setActive(false)
+        } catch {
+            print("AudioSession deactivate error: \(error)")
+        }
+        if let url = audioRecorder?.url {
+            let size = try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int
+            print("File size after stop: \(size ?? -1)")
+        }
     }
 
     func saveMood(mood: Int, audioLenght: Int) {
         guard let url = audioRecorder?.url else { return }
-        print(url)
-        print(mood)
-        print(audioLenght)
-        let entry = MoodEntry(mood: mood, audioFilePath: url.path, audioLenght: audioLenght)
+        let currentDateTime = Date()
+        let entry = MoodEntry(mood: mood, date: currentDateTime, audioFilePath: url.path, audioLenght: audioLenght, transcript: transcript)
         context.insert(entry)
         try? context.save()
+        
+        print(url.path)
     }
 
     // MARK: – Helpers
@@ -79,4 +118,11 @@ final class HomeViewModel: ObservableObject {
     func smileyColor(for mood: Int) -> Color { MoodEntry(mood: mood).smileyColor }
 
     func smileyLabel(for mood: Int) -> String { MoodEntry(mood: mood).moodLabel }
+
+    // Hilfsfunktion für einen sicheren, persistenten Speicherort
+    private static func audioFileURL() -> URL {
+        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let filename = "mood_" + UUID().uuidString + ".m4a"
+        return docs.appendingPathComponent(filename)
+    }
 }

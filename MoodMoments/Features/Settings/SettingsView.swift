@@ -6,16 +6,27 @@
 
 import SwiftUI
 import StoreKit
+import SwiftData
 
 struct SettingsView: View {
     @AppStorage("isDarkMode") private var isDarkMode = false
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+    @State private var showDeleteAlert = false
+    @Environment(\.modelContext) private var modelContext
 
     var body: some View {
         NavigationStack {
             Form {
                 Section("Darstellung") {
                     Toggle("Dark Mode", isOn: $isDarkMode)
+                }
+                
+                Section("Moods") {
+                    Button(role: .destructive) {
+                        showDeleteAlert = true
+                    } label: {
+                        Text("Alle Moods zurücksetzen")
+                    }
                 }
 
                 Section("App") {
@@ -24,6 +35,16 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Einstellungen")
+        }
+        .alert(isPresented: $showDeleteAlert) {
+            Alert(
+                title: Text("Alle Einträge löschen?"),
+                message: Text("Willst du wirklich alle deine Moods unwiderruflich löschen? Diese Aktion kann nicht rückgängig gemacht werden."),
+                primaryButton: .destructive(Text("Löschen")) {
+                    deleteAllMoods()
+                },
+                secondaryButton: .cancel()
+            )
         }
     }
 
@@ -44,6 +65,16 @@ struct SettingsView: View {
         if let url = URL(string: "mailto:\(email)?subject=Support%20Anfrage") {
             UIApplication.shared.open(url)
         }
+    }
+
+    private func deleteAllMoods() {
+        let fetch = FetchDescriptor<MoodEntry>()
+        if let moods = try? modelContext.fetch(fetch) {
+            for mood in moods {
+                modelContext.delete(mood)
+            }
+        }
+        try? modelContext.save()
     }
 }
 

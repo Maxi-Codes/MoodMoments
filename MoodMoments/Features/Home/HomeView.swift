@@ -8,6 +8,7 @@ struct HomeView: View {
     @State private var selectedMood: Int? = nil
     @State private var selectedOption: String = "10 Sekunden"
     @State private var time: Int = 10
+    @State private var showToast = false
 
     @ObservedObject var viewModel: HomeViewModel
 
@@ -157,7 +158,9 @@ struct HomeView: View {
                     Button(action: {
                         selectedMood = mood
                         showMoodSheet = false
-                        viewModel.saveMood(mood: mood, audioLenght: time)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            viewModel.saveMood(mood: mood, audioLenght: time)
+                        }
                     }) {
                         Image(systemName: viewModel.smiley(for: mood))
                             .resizable()

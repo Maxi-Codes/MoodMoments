@@ -28,7 +28,6 @@ final class AnalyseViewModel: ObservableObject {
 
     func fetch() {
         guard let context = context else {
-            print("ModelContext noch nicht gesetzt")
             return
         }
         let calendar = Calendar.current

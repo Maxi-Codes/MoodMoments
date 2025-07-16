@@ -31,7 +31,7 @@ struct RootContentView: View {
                 HomeView(viewModel: HomeViewModel(context: modelContext))
                     .tabItem { Label("Home", systemImage: "house.fill") }
                     .tag(0)
-                HistoryView()
+                HistoryView(modelContext: modelContext)
                     .tabItem { Label("Verlauf", systemImage: "calendar") }
                     .tag(1)
                 AnalyseView()

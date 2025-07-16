@@ -14,17 +14,19 @@ import SwiftUICore
 final class HistoryViewModel: ObservableObject {
     // MARK: – Published
     @Published var currentMonth: Date
-    @Published private(set) var groupedEntries: [Date: MoodEntry] = [:]
+    @Published private(set) var groupedEntries: [Date: [MoodEntry]] = [:]
+    
 
     // MARK: – Dependencies
-    @Environment(\.modelContext) private var context
+    private let context: ModelContext
     
     @Published var streak: Int = 0
 
 
     private var cancellables = Set<AnyCancellable>()
 
-    init(currentMonth: Date = .now) {
+    init(context: ModelContext, currentMonth: Date = .now) {
+        self.context = context
         self.currentMonth = Calendar.current.startOfMonth(for: currentMonth)
         Task { await fetchEntries() }
     }
@@ -35,13 +37,14 @@ final class HistoryViewModel: ObservableObject {
     }
 
     // MARK: – Fetch
-    private func fetchEntries() async {
+    func fetchEntries() async {
         let calendar = Calendar.current
         guard let interval = calendar.dateInterval(of: .month, for: currentMonth) else { return }
         let request = FetchDescriptor<MoodEntry>(predicate: #Predicate { $0.date >= interval.start && $0.date < interval.end })
         do {
             let entries = try context.fetch(request)
-            groupedEntries = Dictionary(entries.map { (calendar.startOfDay(for: $0.date), $0) }, uniquingKeysWith: { $1 })
+            groupedEntries = Dictionary(grouping: entries, by: { calendar.startOfDay(for: $0.date) })
+            updateStreak(with: entries)
         } catch {
             print("History fetch error: \(error)")
         }
@@ -50,7 +53,7 @@ final class HistoryViewModel: ObservableObject {
     public func formatDate(date: Date) -> String {
         let customFormatter = DateFormatter()
         customFormatter.dateFormat = "dd.MM.yyyy"
-        let customString = customFormatter.string(for: Date())
+        let customString = customFormatter.string(for: date)
         return customString!;
     }
     
