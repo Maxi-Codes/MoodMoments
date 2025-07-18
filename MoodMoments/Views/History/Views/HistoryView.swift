@@ -35,8 +35,6 @@ public struct HistoryView: View {
     public var body: some View {
         let moodsLast3: [MoodEntry] = moodsLast3Days
         let allMoodsSorted: [MoodEntry] = moods.sorted(by: { $0.date > $1.date })
-        let groupedEntries = viewModel.groupedEntries
-        let currentMonth = viewModel.currentMonth
         let _ = Self._printChanges()
         ScrollView {
             VStack(spacing: 24) {

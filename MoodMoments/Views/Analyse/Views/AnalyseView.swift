@@ -19,8 +19,8 @@ struct AnalyseView: View {
         ScrollView {
             VStack(spacing: 16) {
                 ChartBox(title: "Letzte 7 Tage", stats: viewModel.last7Days, isLocked: false)
-                ChartBox(title: "Letzte 14 Tage", stats: viewModel.last7Days, isLocked: true)
-                ChartBox(title: "Letzte 30 Tage", stats: viewModel.last7Days, isLocked: true)
+                ChartBox(title: "Letzte 14 Tage", stats: viewModel.last14Days, isLocked: false)
+                ChartBox(title: "Letzte 30 Tage", stats: viewModel.last30Days, isLocked: false)
             }
             .padding(.vertical)
         }

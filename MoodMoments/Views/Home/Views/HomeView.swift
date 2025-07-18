@@ -14,12 +14,13 @@ struct HomeView: View {
 
     let freeOption = "10 Sekunden"
     let premiumOptions = ["15 Sekunden", "20 Sekunden", "30 Sekunden", "60 Sekunden", "Unlimitiert"]
-    let timeOptions: [String: Int] = [
+    let timeOptions: [String: Int?] = [
         "10 Sekunden": 10,
         "15 Sekunden": 15,
         "20 Sekunden": 20,
         "30 Sekunden": 30,
         "60 Sekunden": 60,
+        "Unlimitiert": nil
     ]
 
     init(viewModel: HomeViewModel) {
@@ -68,29 +69,16 @@ struct HomeView: View {
                     }
 
                     Menu {
-                        ForEach(timeOptions.sorted(by: { $0.value < $1.value }), id: \.key) { label, value in
-                            if label == freeOption {
-                                Button(action: {
-                                    selectedOption = label
-                                    time = value
-                                }) {
-                                    Label(label, systemImage: selectedOption == label ? "checkmark" : "")
-                                }
-                            } else {
-                                Label {
-                                    HStack {
-                                        Text(label)
-                                        Spacer()
-                                        Text("Mit Premium freischalten")
-                                            .font(.caption2)
-                                            .foregroundColor(.blue)
-                                            .italic()
-                                    }
-                                } icon: {
-                                    Image(systemName: "lock.fill")
-                                        .foregroundColor(.gray)
-                                }
-                                .disabled(true)
+                        ForEach(timeOptions.sorted(by: { (lhs, rhs) in
+                            let l = lhs.value ?? Int.max
+                            let r = rhs.value ?? Int.max
+                            return l < r
+                        }), id: \.key) { label, value in
+                            Button(action: {
+                                selectedOption = label
+                                time = value ?? 3600 // 1 Stunde als "unlimitiert"
+                            }) {
+                                Label(label, systemImage: selectedOption == label ? "checkmark" : "")
                             }
                         }
                     } label: {
@@ -152,8 +140,8 @@ struct HomeView: View {
                 smileyLabel: viewModel.smileyLabel
             )
         }
-        .onChange(of: viewModel.didFinishRecording) { newValue in
-            if newValue {
+        .onChange(of: viewModel.didFinishRecording) { _ in
+            if viewModel.didFinishRecording {
                 showMoodSheet = true
             }
         }

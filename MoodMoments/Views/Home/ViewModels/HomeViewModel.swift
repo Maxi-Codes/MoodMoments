@@ -73,11 +73,13 @@ final class HomeViewModel: ObservableObject {
             didFinishRecording = false
             timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
                 guard let self else { return }
-                self.secondsElapsed += 1
-                if self.secondsElapsed >= maxSeconds {
-                    self.stopRecording()
-                    let size = try? FileManager.default.attributesOfItem(atPath: fileURL.path)[.size] as? Int
-                    print("File size after recording: \(size ?? -1)")
+                Task { @MainActor in
+                    self.secondsElapsed += 1
+                    if self.secondsElapsed >= maxSeconds {
+                        self.stopRecording()
+                        let size = try? FileManager.default.attributesOfItem(atPath: fileURL.path)[.size] as? Int
+                        print("File size after recording: \(size ?? -1)")
+                    }
                 }
             }
         } catch {

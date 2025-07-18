@@ -86,14 +86,16 @@ final class AudioPlayerManager: NSObject, ObservableObject {
 // AVAudioPlayerDelegate für Session-Deaktivierung
 extension AudioPlayerManager: AVAudioPlayerDelegate {
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-        isPlaying = false
-        stopProgressTimer()
-        currentTime = 0
-        currentFilePath = nil
-        do {
-            try AVAudioSession.sharedInstance().setActive(false)
-        } catch {
-            print("AudioSession deactivate error: \(error)")
+        Task { @MainActor in
+            isPlaying = false
+            stopProgressTimer()
+            currentTime = 0
+            currentFilePath = nil
+            do {
+                try AVAudioSession.sharedInstance().setActive(false)
+            } catch {
+                print("AudioSession deactivate error: \(error)")
+            }
         }
     }
 }

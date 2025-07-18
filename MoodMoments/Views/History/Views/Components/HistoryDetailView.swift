@@ -8,7 +8,7 @@ struct HistoryDetailView: View {
 
     var body: some View {
         VStack(spacing: 24) {
-            Text(date, formatter: DateFormatter.longDate)
+            Text(date, formatter: DateFormatter.germanLongDate)
                 .font(.title2)
                 .fontWeight(.semibold)
 
