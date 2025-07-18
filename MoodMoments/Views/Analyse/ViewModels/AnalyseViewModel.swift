@@ -11,12 +11,6 @@ import SwiftUICore
 
 @MainActor
 final class AnalyseViewModel: ObservableObject {
-    struct DayStat: Identifiable {
-        let id = UUID()
-        let date: Date
-        let averageMood: Double
-    }
-
     private var context: ModelContext?
 
     @Published private(set) var last7Days: [DayStat] = []

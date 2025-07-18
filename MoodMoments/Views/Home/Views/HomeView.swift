@@ -117,9 +117,9 @@ struct HomeView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                     VStack(alignment: .leading, spacing: 12) {
-                        impulseView(text: "„Jeder Tag ist eine neue Chance.“", icon: "sunrise.fill")
-                        impulseView(text: "„Es ist okay, nicht okay zu sein.“", icon: "cloud.drizzle.fill")
-                        impulseView(text: "„Du bist weiter als du denkst.“", icon: "figure.walk.circle.fill")
+                        ImpulseView(text: "„Jeder Tag ist eine neue Chance.“", icon: "sunrise.fill")
+                        ImpulseView(text: "„Es ist okay, nicht okay zu sein.“", icon: "cloud.drizzle.fill")
+                        ImpulseView(text: "„Du bist weiter als du denkst.“", icon: "figure.walk.circle.fill")
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -138,60 +138,24 @@ struct HomeView: View {
         .sheet(isPresented: $showMoodSheet, onDismiss: {
             viewModel.didFinishRecording = false // reset
         }) {
-            moodSheet
+            MoodSheet(
+                selectedMood: $selectedMood,
+                time: time,
+                onSelect: { mood in
+                    showMoodSheet = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        viewModel.saveMood(mood: mood, audioLenght: time)
+                    }
+                },
+                smiley: viewModel.smiley,
+                smileyColor: viewModel.smileyColor,
+                smileyLabel: viewModel.smileyLabel
+            )
         }
         .onChange(of: viewModel.didFinishRecording) { newValue in
             if newValue {
                 showMoodSheet = true
             }
         }
-    }
-
-    private var moodSheet: some View {
-        VStack(spacing: 24) {
-            Text("Wie war deine Stimmung?")
-                .font(.title2)
-                .fontWeight(.semibold)
-
-            HStack(spacing: 16) {
-                ForEach(1...5, id: \.self) { mood in
-                    Button(action: {
-                        selectedMood = mood
-                        showMoodSheet = false
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            viewModel.saveMood(mood: mood, audioLenght: time)
-                        }
-                    }) {
-                        Image(systemName: viewModel.smiley(for: mood))
-                            .resizable()
-                            .frame(width: 40, height: 40)
-                            .foregroundColor(viewModel.smileyColor(for: mood))
-                            .opacity(selectedMood == mood ? 1.0 : 0.6)
-                            .scaleEffect(selectedMood == mood ? 1.2 : 1.0)
-                            .animation(.easeInOut(duration: 0.2), value: selectedMood)
-                    }
-                    .accessibilityLabel(viewModel.smileyLabel(for: mood))
-                }
-            }
-
-            Text("1 = traurig, 5 = fröhlich")
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .padding()
-    }
-
-
-    private func impulseView(text: String, icon: String) -> some View {
-        HStack(alignment: .top, spacing: 8) {
-            Image(systemName: icon)
-                .foregroundColor(.blue)
-            Text(text)
-                .italic()
-                .font(.subheadline)
-        }
-        .padding(12)
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(12)
     }
 }

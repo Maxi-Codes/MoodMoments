@@ -113,16 +113,6 @@ final class HomeViewModel: ObservableObject {
     }
 
     // MARK: – Helpers
-    func smiley(for mood: Int) -> String { MoodEntry(mood: mood).smiley }
-    
-    func smileyColor(for mood: Int) -> Color { MoodEntry(mood: mood).smileyColor }
-
-    func smileyLabel(for mood: Int) -> String { MoodEntry(mood: mood).moodLabel }
 
     // Hilfsfunktion für einen sicheren, persistenten Speicherort
-    private static func audioFileURL() -> URL {
-        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let filename = "mood_" + UUID().uuidString + ".m4a"
-        return docs.appendingPathComponent(filename)
-    }
 }

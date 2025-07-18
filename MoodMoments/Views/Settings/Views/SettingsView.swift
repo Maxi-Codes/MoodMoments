@@ -17,11 +17,11 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Darstellung") {
+                SettingsSection(title: "Darstellung") {
                     Toggle("Dark Mode", isOn: $isDarkMode)
                 }
                 
-                Section("Moods") {
+                SettingsSection(title: "Moods") {
                     Button(role: .destructive) {
                         showDeleteAlert = true
                     } label: {
@@ -29,7 +29,7 @@ struct SettingsView: View {
                     }
                 }
 
-                Section("App") {
+                SettingsSection(title: "App") {
                     Button("App bewerten") { rateApp() }
                     Button("Support kontaktieren") { contactSupport() }
                 }
