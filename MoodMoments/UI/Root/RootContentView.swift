@@ -37,9 +37,12 @@ struct RootContentView: View {
                 AnalyseView()
                     .tabItem { Label("Analyse", systemImage: "chart.bar.xaxis") }
                     .tag(2)
+                GoalReflectionOverviewView()
+                    .tabItem{ Label("Ziele & Reflektion", systemImage: "target") }
+                    .tag(3)
                 SettingsView()
                     .tabItem { Label("Einstell.", systemImage: "gearshape") }
-                    .tag(3)
+                    .tag(4)
             }
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showProSheet) {
