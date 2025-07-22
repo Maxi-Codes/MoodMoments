@@ -9,6 +9,9 @@ struct HomeView: View {
     @State private var selectedOption: String = "10 Sekunden"
     @State private var time: Int = 10
     @State private var showToast = false
+    @State private var adviceText: String = ""
+    @State private var showAdvice = false
+    @State private var moodLevelForAdvice: Int? = nil
 
     @ObservedObject var viewModel: HomeViewModel
 
@@ -131,8 +134,18 @@ struct HomeView: View {
                 time: time,
                 onSelect: { mood in
                     showMoodSheet = false
+                    showMoodSheet = false
+                    moodLevelForAdvice = mood
+                    adviceText = MoodAdvice.advice(for: mood)
+                    
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                         viewModel.saveMood(mood: mood, audioLenght: time)
+                        CheckAnimationManager.shared.showCheckAnimation("Deine Mood wurde gespeichert.")
+                        
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                                showAdvice = true
+                            }
+                        
                     }
                 },
                 smiley: viewModel.smiley,
@@ -140,10 +153,33 @@ struct HomeView: View {
                 smileyLabel: viewModel.smileyLabel
             )
         }
+        .sheet(isPresented: $showAdvice) {
+            if let mood = moodLevelForAdvice {
+                MoodAdviceView(moodLevel: mood, adviceText: adviceText)
+            }
+        }
         .onChange(of: viewModel.didFinishRecording) { _ in
             if viewModel.didFinishRecording {
                 showMoodSheet = true
             }
         }
+        .withCheckAnimation()
+    }
+}
+
+struct CheckAnimationOverlay: ViewModifier {
+    @ObservedObject var manager = CheckAnimationManager.shared
+
+    func body(content: Content) -> some View {
+        ZStack {
+            content
+            CheckAnimationView(message: $manager.message, show: $manager.show)
+        }
+    }
+}
+
+extension View {
+    func withCheckAnimation() -> some View {
+        self.modifier(CheckAnimationOverlay())
     }
 }

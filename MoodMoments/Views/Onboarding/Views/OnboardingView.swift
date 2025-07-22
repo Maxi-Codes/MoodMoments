@@ -13,13 +13,33 @@ struct OnboardingView: View {
     var body: some View {
         VStack {
             TabView(selection: $page) {
-                OnboardPage(image: "waveform", title: "Willkommen bei Mood Moments!", subtitle: "Deine App, um deine Stimmung einfach per Sprache festzuhalten.")
-                    .tag(0)
-                OnboardPage(image: "mic.circle.fill", title: "Sprich deine Stimmung aus", subtitle: "Halte jeden Tag deine Gefühle fest – einfach per Mikrofon.")
-                    .tag(1)
-                OnboardPage(image: "rectangle.and.pencil.and.ellipsis", title: "Stimmung von Sprachform in Textform umwandeln", subtitle: "Lasse deine Stimmung per AI in Textform umwandeln").tag(2)
-                OnboardPage(image: "calendar", title: "Behalte den Überblick", subtitle: "Sieh dir deinen Stimmungsverlauf und hilfreiche Analysen an.")
-                    .tag(3)
+                OnboardPage(
+                    image: "waveform",
+                    title: "Willkommen bei Mood Moments!",
+                    subtitle: "Deine persönliche App, um deine Stimmung ganz einfach mit der Stimme festzuhalten."
+                )
+                .tag(0)
+                
+                OnboardPage(
+                    image: "mic.circle.fill",
+                    title: "Sag uns, wie du dich fühlst",
+                    subtitle: "Nimm täglich kurze Sprachaufnahmen auf, um deine Gefühle authentisch zu dokumentieren."
+                )
+                .tag(1)
+                
+                OnboardPage(
+                    image: "rectangle.and.pencil.and.ellipsis",
+                    title: "Automatische Stimmungsübersetzung",
+                    subtitle: "Unsere KI wandelt deine Sprache in verständlichen Text um – so behältst du den Überblick."
+                )
+                .tag(2)
+                
+                OnboardPage(
+                    image: "calendar",
+                    title: "Verfolge deine Entwicklung",
+                    subtitle: "Sieh deine Stimmung im Zeitverlauf und entdecke hilfreiche Einblicke und Tipps."
+                )
+                .tag(3)
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
             .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))

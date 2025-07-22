@@ -10,6 +10,12 @@ import SwiftData
 
 @main
 struct MoodMomentsApp: App {
+    
+    init() {
+            NotificationManager.shared.requestPermission()
+            NotificationManager.shared.scheduleDailyReminder()
+        }
+    
     var body: some Scene {
         WindowGroup {
             RootContentView()
