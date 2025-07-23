@@ -60,7 +60,6 @@ struct SettingsView: View {
         if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
             #if canImport(StoreKit)
             if #available(iOS 14.0, *) {
-                //SKStoreReviewController.requestReview(in: scene)
                 AppStore.requestReview(in: scene)
             }
             #endif
@@ -68,7 +67,7 @@ struct SettingsView: View {
     }
 
     private func contactSupport() {
-        let email = "ghostmaxi296@gmail.com"
+        let email = "support@moodmoments.de"
         if let url = URL(string: "mailto:\(email)?subject=Support%20Anfrage") {
             UIApplication.shared.open(url)
         }
