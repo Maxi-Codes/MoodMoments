@@ -40,6 +40,20 @@ struct OnboardingView: View {
                     subtitle: "Sieh deine Stimmung im Zeitverlauf und entdecke hilfreiche Einblicke und Tipps."
                 )
                 .tag(3)
+                
+                OnboardPage(
+                    image: "checklist",
+                    title: "Setze Ziele & reflektiere",
+                    subtitle: "Erstelle persönliche Ziele und halte tägliche Reflektionen fest – für mehr Achtsamkeit und Klarheit im Alltag."
+                )
+                .tag(4)
+                
+                OnboardPage(
+                        image: "lock.shield",
+                        title: "Deine Daten bleiben privat",
+                        subtitle: "Alle Daten werden ausschließlich lokal auf deinem Gerät gespeichert – kein Server, keine Cloud. Für maximale Privatsphäre."
+                    )
+                    .tag(5)
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
             .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
@@ -47,7 +61,7 @@ struct OnboardingView: View {
 
             Spacer()
             Button(action: next) {
-                Text(page < 3 ? "Weiter" : "Los geht's!")
+                Text(page < 5 ? "Weiter" : "Los geht's!")
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -63,7 +77,7 @@ struct OnboardingView: View {
     }
 
     private func next() {
-        if page < 3 {
+        if page < 5 {
             withAnimation { page += 1 }
         } else {
             hasSeenOnboarding = true

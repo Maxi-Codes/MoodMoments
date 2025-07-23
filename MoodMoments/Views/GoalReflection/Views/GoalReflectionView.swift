@@ -9,19 +9,8 @@ import SwiftUI
 import SwiftData
 
 
-struct Goal: Identifiable {
-    let id = UUID()
-    let title: String
-    let description: String
-    let deadline: Date
-    var isCompleted: Bool = false
-}
-
-struct Reflection: Identifiable {
-    let id = UUID()
-    let text: String
-    let date: Date
-}
+import SwiftUI
+import SwiftData
 
 enum ActiveSheet: Identifiable {
     case newGoal, newReflection
@@ -29,41 +18,49 @@ enum ActiveSheet: Identifiable {
 }
 
 struct GoalReflectionOverviewView: View {
-    @State private var goals: [Goal] = []
-    @State private var reflections: [Reflection] = []
+    @Environment(\.modelContext) private var context
+    
+    @Query(sort: \GoalEntry.date, order: .reverse) private var goals: [GoalEntry]
+    @Query(sort: \ReflectionEntry.date, order: .reverse) private var reflections: [ReflectionEntry]
+    
     @State private var activeSheet: ActiveSheet?
-    @State private var focusedField: Bool = false
     
     var body: some View {
         NavigationView {
             List {
-                // Aktive Ziele
-                if !goals.filter({ !$0.isCompleted }).isEmpty {
+                if !activeGoals.isEmpty {
                     Section(header: Text("Ziele")) {
-                        ForEach(goals.filter { !$0.isCompleted }) { goal in
-                            goalRow(goal: goal, isCompleted: false)
+                        ForEach(activeGoals) { goal in
+                            goalRow(goal: goal)
+                        }
+                        .onDelete { indexSet in
+                            deleteGoals(at: indexSet, from: activeGoals)
                         }
                     }
                 }
-                
-                // Erledigte Ziele
-                if !goals.filter({ $0.isCompleted }).isEmpty {
+
+                if !completedGoals.isEmpty {
                     Section(header: Text("Erledigte Ziele")) {
-                        ForEach(goals.filter { $0.isCompleted }) { goal in
-                            goalRow(goal: goal, isCompleted: true)
+                        ForEach(completedGoals) { goal in
+                            goalRow(goal: goal)
+                        }
+                        .onDelete { indexSet in
+                            deleteGoals(at: indexSet, from: completedGoals)
                         }
                     }
                 }
-                
-                // Reflexionen
+
                 if !reflections.isEmpty {
                     Section(header: Text("Reflexionen")) {
                         ForEach(reflections) { reflection in
                             ReflectionRow(reflection: reflection)
                         }
+                        .onDelete { indexSet in
+                            deleteReflections(at: indexSet)
+                        }
                     }
                 }
-                
+
                 if goals.isEmpty && reflections.isEmpty {
                     Text("Noch keine Ziele oder Reflexionen. Tippe auf '+' oben rechts, um zu starten.")
                         .foregroundColor(.secondary)
@@ -89,37 +86,33 @@ struct GoalReflectionOverviewView: View {
             .sheet(item: $activeSheet) { item in
                 switch item {
                 case .newGoal:
-                    NewGoalView { newGoal in
-                        goals.append(newGoal)
-                        activeSheet = nil
-                        focusedField = false
-                        CheckAnimationManager.shared.showCheckAnimation("Dein Ziel wurde gespeichert.")
-                    }
+                    NewGoalView()
                 case .newReflection:
-                    NewReflectionView { newReflection in
-                        reflections.append(newReflection)
-                        activeSheet = nil
-                        focusedField = false
-                        CheckAnimationManager.shared.showCheckAnimation("Deine Reflexion wurde gespeichert.")
-                    }
+                    NewReflectionView()
                 }
             }
         }
     }
-    
-    // MARK: - Goal Row
-    @ViewBuilder
-    private func goalRow(goal: Goal, isCompleted: Bool) -> some View {
+
+    private var activeGoals: [GoalEntry] {
+        goals.filter { $0.isCompleted == false }
+    }
+
+    private var completedGoals: [GoalEntry] {
+        goals.filter { $0.isCompleted == true }
+    }
+
+    private func goalRow(goal: GoalEntry) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text(goal.title)
+                Text(goal.goal)
                     .font(.headline)
-                    .strikethrough(isCompleted, color: .gray)
-                    .foregroundColor(isCompleted ? .gray : .primary)
-                Text(goal.description)
+                    .strikethrough(goal.isCompleted, color: .gray)
+                    .foregroundColor(goal.isCompleted ? .gray : .primary)
+                Text(goal.desc)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
-                Text("Deadline: \(goal.deadline, formatter: dateFormatter)")
+                Text("Deadline: \(goal.date, formatter: dateFormatter)")
                     .font(.caption)
                     .foregroundColor(.gray)
             }
@@ -127,43 +120,62 @@ struct GoalReflectionOverviewView: View {
             Button(action: {
                 toggleGoalCompletion(goal)
             }) {
-                Image(systemName: isCompleted ? "checkmark.circle.fill" : "checkmark.circle")
-                    .foregroundColor(isCompleted ? .green : .gray)
+                Image(systemName: goal.isCompleted ? "checkmark.circle.fill" : "checkmark.circle")
+                    .foregroundColor(goal.isCompleted ? .green : .gray)
                     .font(.title2)
             }
-            .buttonStyle(PlainButtonStyle())
+            .buttonStyle(.plain)
         }
         .padding(.vertical, 6)
     }
     
-    private func toggleGoalCompletion(_ goal: Goal) {
-        if let index = goals.firstIndex(where: { $0.id == goal.id }) {
-            goals[index].isCompleted.toggle()
+    private func deleteGoals(at offsets: IndexSet, from source: [GoalEntry]) {
+        for index in offsets {
+            let goal = source[index]
+            context.delete(goal)
+        }
+        try? context.save()
+    }
+
+    private func deleteReflections(at offsets: IndexSet) {
+        for index in offsets {
+            let reflection = reflections[index]
+            context.delete(reflection)
+        }
+        try? context.save()
+    }
+
+    private func toggleGoalCompletion(_ goal: GoalEntry) {
+        goal.isCompleted.toggle()
+        try? context.save()
+        
+        if goal.isCompleted {
+            NotificationManager.shared.cancelGoalReminder(for: goal)
+        } else {
+            NotificationManager.shared.scheduleGoalReminder(for: goal)
         }
     }
-    
+
     private var dateFormatter: DateFormatter {
         let df = DateFormatter()
         df.dateStyle = .medium
         return df
     }
 }
+
 struct NewGoalView: View {
     @Environment(\.dismiss) var dismiss
-    
+    @Environment(\.modelContext) private var context
+
     @State private var title = ""
     @State private var description = ""
     @State private var deadline = Date()
-    
     @FocusState private var focusedField: Field?
-    
+
     enum Field {
-        case title
-        case description
+        case title, description
     }
-    
-    var onSave: (Goal) -> Void
-    
+
     var body: some View {
         NavigationView {
             VStack {
@@ -171,31 +183,27 @@ struct NewGoalView: View {
                     Section("Titel") {
                         TextField("Ziel Titel", text: $title)
                             .focused($focusedField, equals: .title)
-                            .padding(10)
-                            .background(Color(UIColor.secondarySystemBackground))
-                            .cornerRadius(8)
                     }
+
                     Section("Beschreibung") {
                         TextField("Beschreibung", text: $description)
                             .focused($focusedField, equals: .description)
-                            .padding(10)
-                            .background(Color(UIColor.secondarySystemBackground))
-                            .cornerRadius(8)
                     }
+
                     Section("Deadline") {
                         DatePicker("Deadline", selection: $deadline, displayedComponents: .date)
-                            .datePickerStyle(.compact)
                     }
                 }
-                .scrollContentBackground(.hidden)
-                .background(Color(UIColor.systemGroupedBackground))
-                
+
                 Spacer()
-                
+
                 Button(action: {
                     guard !title.isEmpty else { return }
-                    hideKeyboard()
-                    onSave(Goal(title: title, description: description, deadline: deadline))
+                    let newGoal = GoalEntry(goal: title, description: description, date: deadline)
+                    context.insert(newGoal)
+                    try? context.save()
+                    CheckAnimationManager.shared.showCheckAnimation("Dein Ziel wurde gespeichert.")
+                    NotificationManager.shared.scheduleGoalReminder(for: newGoal)
                     dismiss()
                 }) {
                     Text("Speichern")
@@ -218,22 +226,18 @@ struct NewGoalView: View {
                     }
                 }
             }
-            .background(Color(UIColor.systemGroupedBackground).ignoresSafeArea())
         }
-        .onAppear {
-            focusedField = .title
-        }
+        .onAppear { focusedField = .title }
     }
 }
 
 struct NewReflectionView: View {
     @Environment(\.dismiss) var dismiss
-    
+    @Environment(\.modelContext) private var context
+
     @State private var text = ""
     @FocusState private var focusedField: Bool
-    
-    var onSave: (Reflection) -> Void
-    
+
     var body: some View {
         NavigationView {
             VStack {
@@ -242,20 +246,21 @@ struct NewReflectionView: View {
                         TextEditor(text: $text)
                             .frame(minHeight: 200, maxHeight: 250)
                             .focused($focusedField)
-                            .padding(10)
-                            .background(Color(UIColor.secondarySystemBackground))
-                            .cornerRadius(8)
                     }
                 }
-                .scrollContentBackground(.hidden)
-                .background(Color(UIColor.systemGroupedBackground))
-                
+
                 Spacer()
-                
+
                 Button(action: {
                     guard !text.isEmpty else { return }
-                    hideKeyboard()
-                    onSave(Reflection(text: text, date: Date()))
+                    let newReflection = ReflectionEntry(text: text)
+                    context.insert(newReflection)
+                    do {
+                        try context.save()
+                    } catch {
+                        print("Fehler beim Speichern: \(error.localizedDescription)")
+                    }
+                    CheckAnimationManager.shared.showCheckAnimation("Deine Reflexion wurde gespeichert.")
                     dismiss()
                 }) {
                     Text("Speichern")
@@ -278,25 +283,22 @@ struct NewReflectionView: View {
                     }
                 }
             }
-            .background(Color(UIColor.systemGroupedBackground).ignoresSafeArea())
         }
-        .onAppear {
-            focusedField = true
-        }
+        .onAppear { focusedField = true }
     }
 }
 
 struct ReflectionRow: View {
-    let reflection: Reflection
+    let reflection: ReflectionEntry
     @State private var showFullText = false
     private let characterLimit = 100
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(displayedText)
                 .font(.body)
                 .animation(.easeInOut, value: showFullText)
-            
+
             if isTruncated {
                 Button(action: {
                     showFullText.toggle()
@@ -306,20 +308,20 @@ struct ReflectionRow: View {
                         .foregroundColor(.blue)
                         .padding(.top, 2)
                 }
-                .buttonStyle(PlainButtonStyle())
+                .buttonStyle(.plain)
             }
-            
+
             Text("\(reflection.date, formatter: dateFormatter)")
                 .font(.caption)
                 .foregroundColor(.gray)
         }
         .padding(.vertical, 6)
     }
-    
+
     private var isTruncated: Bool {
         reflection.text.count > characterLimit
     }
-    
+
     private var displayedText: String {
         if showFullText || !isTruncated {
             return reflection.text
@@ -328,18 +330,10 @@ struct ReflectionRow: View {
             return String(reflection.text[..<index]) + "..."
         }
     }
-    
+
     private var dateFormatter: DateFormatter {
         let df = DateFormatter()
         df.dateStyle = .medium
         return df
     }
 }
-
-#if canImport(UIKit)
-extension View {
-    func hideKeyboard() {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-    }
-}
-#endif

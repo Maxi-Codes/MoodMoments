@@ -9,7 +9,8 @@ import StoreKit
 import SwiftData
 
 struct SettingsView: View {
-    @AppStorage("isDarkMode") private var isDarkMode = false
+    @Environment(\.colorScheme) private var systemColorScheme
+    @AppStorage("selectedAppearance") private var selectedAppearance: String = "system"
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
     @State private var showDeleteAlert = false
     @Environment(\.modelContext) private var modelContext
@@ -18,8 +19,14 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 SettingsSection(title: "Darstellung") {
-                    Toggle("Dark Mode", isOn: $isDarkMode)
+                    Picker("Darstellung", selection: $selectedAppearance) {
+                        Text("System").tag("system")
+                        Text("Hell").tag("light")
+                        Text("Dunkel").tag("dark")
+                    }
+                    .pickerStyle(.segmented)
                 }
+                
                 
                 SettingsSection(title: "Moods") {
                     Button(role: .destructive) {
@@ -75,6 +82,14 @@ struct SettingsView: View {
             }
         }
         try? modelContext.save()
+    }
+    
+    private var isDarkModeEnabled: Bool {
+        switch selectedAppearance {
+        case "dark": return true
+        case "light": return false
+        default: return systemColorScheme == .dark
+        }
     }
 }
 

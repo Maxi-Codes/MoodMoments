@@ -51,5 +51,48 @@ final class NotificationManager {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["dailyMoodReminder"])
         print("🔕 Erinnerung gelöscht")
     }
+    
+    func scheduleGoalReminder(for goal: GoalEntry) {
+        guard !goal.isCompleted else { return }
+        
+        let content = UNMutableNotificationContent()
+        content.title = "⚠️ Dein Ziel läuft bald ab!"
+        content.body = "„\(goal.goal)“ endet morgen. Noch nicht erledigt?"
+        content.sound = .default
+
+        let reminderDate = Calendar.current.date(byAdding: .day, value: -1, to: goal.date) ?? goal.date
+        let dateComponents = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute],
+                                                             from: reminderDate.setTime(hour: 9, minute: 0))
+
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: "goalReminder-\(goal.id.uuidString)",
+            content: content,
+            trigger: trigger
+        )
+
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("❌ Fehler beim Planen des Ziels: \(error.localizedDescription)")
+            } else {
+                print("✅ Erinnerung für Ziel geplant: \(goal.goal)")
+            }
+        }
+    }
+
+    func cancelGoalReminder(for goal: GoalEntry) {
+        let id = "goalReminder-\(goal.id.uuidString)"
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
+        print("🔕 Erinnerung für Ziel gelöscht: \(goal.goal)")
+    }
 }
 
+extension Date {
+    func setTime(hour: Int, minute: Int) -> Date {
+        var calendar = Calendar.current
+        var components = calendar.dateComponents([.year, .month, .day], from: self)
+        components.hour = hour
+        components.minute = minute
+        return calendar.date(from: components) ?? self
+    }
+}
